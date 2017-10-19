@@ -1,0 +1,6 @@
+I was trying to give Tina Fey more material.
+1 2 4 8 16 32
+0 933
+11 18
+5 115
+4 2 5 3 1 6
