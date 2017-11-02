@@ -1,0 +1,46 @@
+                      | #NAME: YIHUA CHENG; ID: 1600017703
+  0x000:              | 	.pos 0
+  0x000:              | init:
+  0x000: 30f400020000 | 	irmovl STACK, %esp 
+  0x006: 30f500020000 | 	irmovl STACK, %ebp
+  0x00c: 8000030000   | 	call MAIN
+  0x011: 00           | 	halt
+                      | 
+  0x200:              | 	.pos 0x200				#SS	
+  0x200:              | STACK:						#for stack
+                      | 
+  0x200:              | .align 4					#DS
+  0x200:              | ele1:
+  0x200: 0a000000     | 	.long 0x00a
+  0x204: 08020000     | 	.long ele2
+  0x208:              | ele2:
+  0x208: b0000000     | 	.long 0x0b0
+  0x20c: 10020000     | 	.long ele3
+  0x210:              | ele3:
+  0x210: 000c0000     | 	.long 0xc00
+  0x214: 00000000     | 	.long 0
+                      | 
+  0x300:              | 	.pos 0x300				#CS
+  0x300:              | MAIN:
+  0x300: 30f700020000 | 	irmovl	ele1, %edi
+                      | #	pushl	%eax
+  0x306: 800c030000   | 	call	sum_list
+  0x30b: 90           | 	ret
+                      | 	
+  0x30c:              | sum_list:
+  0x30c: a05f         | 	pushl	%ebp			#save old rbp into stack
+  0x30e: 2045         | 	rrmovl	%esp, %ebp		#save the base point into rbp
+  0x310: 6300         | 	xorl	%eax, %eax		#sum=0
+  0x312: 6277         | 	andl	%edi, %edi		#init ls is in %edi
+  0x314: 732e030000   | 	je		END
+  0x319:              | LOOP:
+  0x319: 503700000000 | 	mrmovl	0(%edi), %ebx
+  0x31f: 6030         | 	addl	%ebx, %eax	#add
+  0x321: 507704000000 | 	mrmovl	4(%edi), %edi	#ls = ls->next
+  0x327: 6277         | 	andl	%edi, %edi
+  0x329: 7419030000   | 	jne		LOOP			#if ls !=0
+  0x32e:              | END:
+  0x32e: 2054         | 	rrmovl	%ebp, %esp
+  0x330: b05f         | 	popl	%ebp			#leave
+  0x332: 90           | 	ret
+                      | 	

@@ -1,0 +1,46 @@
+#NAME: YIHUA CHENG; ID: 1600017703
+	.pos 0
+init:
+	irmovl STACK, %esp 
+	irmovl STACK, %ebp
+	call MAIN
+	halt
+
+	.pos 0x200				#SS	
+STACK:						#for stack
+
+.align 4					#DS
+ele1:
+	.long 0x00a
+	.long ele2
+ele2:
+	.long 0x0b0
+	.long ele3
+ele3:
+	.long 0xc00
+	.long 0
+
+	.pos 0x300				#CS
+MAIN:
+	irmovl	ele1, %edi
+#	pushl	%eax
+	call	sum_list
+	ret
+	
+sum_list:
+	pushl	%ebp			#save old rbp into stack
+	rrmovl	%esp, %ebp		#save the base point into rbp
+	xorl	%eax, %eax		#sum=0
+	andl	%edi, %edi		#init ls is in %edi
+	je		END
+LOOP:
+	mrmovl	0(%edi), %ebx
+	addl	%ebx, %eax	#add
+	mrmovl	4(%edi), %edi	#ls = ls->next
+	andl	%edi, %edi
+	jne		LOOP			#if ls !=0
+END:
+	rrmovl	%ebp, %esp
+	popl	%ebp			#leave
+	ret
+	

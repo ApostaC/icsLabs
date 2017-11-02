@@ -1,0 +1,104 @@
+5.13
+A.Operations are following
+ +----+----+----+----+-----+-----+
+ |%rbp|%rcx|%rax|%rbx|%xmm1|%xmm0|
+ +----+----+----+----+-----+-----+
+   |	|	 |	  |			 |	  +----+	
+   o----|----|----|----------|--->|    |
+   |    o----|----|----------|--->|load|      vmovad 0(%rbp,%rcx,8),%xmm1
+   |    |    |    |    o-----|---<|    |
+   |    |    |    |    |     |    +----+
+   |    o----|----|----------|--->|    |
+   |    |    |    |    |     |    |load|---o
+   |    |    o----|----------|--->|    |   |
+   |    |    |    |    |     |    +----+   |  vmulsd (%rax,%rcx,8),%xmm1,%xmm0
+   |    |    |    |    |     |    |    |<--o
+   |    |    |    |    L-----|--->|mul |
+   |    |    |    |    r-----|---<|    |
+   |    |    |    |    |     |    +----+
+   |    |    |    |    o-----|--->|    |
+   |    |    |    |    |     L--->|add |      vaddsd %xmm1,%xmm0,%xmm0
+   |    |    |    |    |     r---<|    |
+   |    |    |    |    |     |    +----+
+   |    o----|----|----------|--->|    |
+   |         |    |    |     |    |add |      addq $1, %rcx
+   |    o----|----|----------|----|    |
+   |    |    |    |    |     |    +----+
+   |    o----|----|----------|--->|    |
+   |    |    |    |    |     |    |cmp |---+  cmpq %rbx, %rcx
+   |    |    |    o----|-----|--->|    |   |
+   |    |    |    |    |     |    +----+   |
+   |    |    |    |    |     |    |jne |<--+  jne .L15
+   |    |    |    |    |     |    +----+
+   v    v    v    v    v     v
+ +----+----+----+----+-----+-----+
+ |%rbp|%rcx|%rax|%rbx|%xmm1|%xmm0|
+ +----+----+----+----+-----+-----+
+
+Simplefied figure...
+
+  +----+                     +-----+
+  |%rcx|                     |%xmm0|
+  +----+                     +-----+
+    |    +----+                ||  <--------- key path
+    o--->|load|------o         ||
+    |    +----+      |         ||
+    |                v         \/
+    |    +----+    +----+    +----+
+    o--->|load|--->|mul |--->|add |
+    |    +----+    +----+    +----+
+    |                          ||
+    v                          ||
+  +----+                       ||
+  |add |                       ||
+  +----+                       ||
+    |                          ||
+    v                          \/
+  +----+                     +-----+
+  |%rcx|                     |%xmm0|
+  +----+                     +-----+
+
+B.
+ CPE is 3.0 which is the latency of float ADD operation
+
+C.
+ CPE is 1.0 which is the latency of long ADD operation
+
+D.
+ The only operation on the key path is FLOAT ADD operation
+
+5.14
+void inner4(vec_ptr u, vec_ptr v, data_t *dest)
+{
+	long i;
+	long length = vec_length(u);
+	data_t *udata=get_vec_start(u);
+	data_t *vdata=get_vec_start(v);
+	data_t sum=(data_t)0;
+	
+	for(int i=0;i<length;i+=6)
+	{
+		sum+=
+			(udata[i]*vdata[i];
+			+udata[i+2]*vdata[i+2]
+			+udata[i+3]*vdata[i+3]
+			+udata[i+4]*vdata[i+4]
+			+udata[i+5]*vdata[i+5]
+			+udata[i+6]*vdata[i+6]);
+	}
+	for(;i<length;i++)
+	{
+		sum+=(udata[i]*vdata[i]);
+	}
+	*dest=sum;
+}
+
+A.
+ Each loop needs 6 times of ADD operation, which has a cell CPE of 1.0 
+ and cannot be paralleled
+ Times of loops are length/6
+ Therefore, the minimum CPE is 1.0
+
+B.
+ Same as A, but the minimum of CPE of FLOAT ADD is 3.0
+

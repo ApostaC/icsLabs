@@ -1,0 +1,91 @@
+##################################################################
+#
+# ID	: 1600017703
+# NAME	: YIHUA CHENG
+#======================================================
+#			BASIC IDEA : LOOP UNROLLING
+# 1.  
+#	  Noticed that constants such as 1,4 and -1 are 
+#	always moved into %edx, I implemented the 'iaddl'
+#	so that it become free to use %edx
+#	  @see pipe-full.hcl
+# 2.  
+#	  Since %edx is avalible to use, I expaned(unroll)
+#	the loop into 2 pieces
+# 3.  
+#	  Multiple times of 'mrmovl' together can get rid
+#   of facing LOAD/USE HAZARD, and thus save time...
+# 4.  
+#	  Moving the decrement of %edx(len) to the end of 
+#	loop can reduce one instruction that 'andl ...'
+#======================================================
+#
+#/* $begin ncopy-ys */
+#
+##################################################################
+# ncopy.ys - Copy a src block of len ints to dst.
+# Return the number of positive ints (>0) contained in src.
+#
+# Include your name and ID here.
+#
+# Describe how and why you modified the baseline code.
+#
+##################################################################
+# Do not modify this portion
+# Function prologue.
+ncopy:	pushl %ebp		# Save old frame pointer
+	rrmovl %esp,%ebp	# Set up new frame pointer
+	pushl %esi		# Save callee-save regs
+	pushl %ebx
+	pushl %edi
+	mrmovl 8(%ebp),%ebx	# src
+	mrmovl 16(%ebp),%edx	# len
+	mrmovl 12(%ebp),%ecx	# dst
+
+##################################################################
+# You can modify this portion
+	# Loop header
+	xorl %eax,%eax		# count = 0;
+	iaddl	$-1,	%edx
+	jle		REMAIN				# if so, goto Done:
+
+Loop:
+	mrmovl	(%ebx), %esi	# read val1 from src
+	mrmovl	4(%ebx),%edi	# read val2 from src+1
+	rmmovl	%esi,	(%ecx)	# ...and store it to dst
+	rmmovl	%edi,	4(%ecx)	# ...and store it to dst
+	andl	%esi,	%esi	# val1 <= 0?
+	jle		VAL1			# deal with val1
+	iaddl	$1,	%eax		# ret++
+VAL1:
+	andl	%edi,	%edi	# val2<=0
+	jle		VAL2
+	iaddl	$1,		%eax	# ret++
+VAL2:
+	iaddl	$8,		%ebx	# src++
+	iaddl	$8,		%ecx	# dst++
+	iaddl	$-2,	%edx	# len--
+	jg Loop					# if len>0, goto Loop:
+
+
+REMAIN:
+	jne Done				# if REMAIN==-1 then done else still have one
+	mrmovl	(%ebx), %esi	# read val from src...
+	rmmovl	%esi,	(%ecx)	# ...and store it to dst
+	andl	%esi,	%esi	# val <= 0?
+	jle		Done			# goto Done
+	iaddl	$1,		%eax
+##################################################################
+# Do not modify the following section of code
+# Function epilogue.
+Done:
+	popl %edi               # Restore callee-save registers
+	popl %ebx
+	popl %esi
+	rrmovl %ebp, %esp
+	popl %ebp
+	ret
+##################################################################
+# Keep the following label at the end of your function
+End:
+#/* $end ncopy-ys */

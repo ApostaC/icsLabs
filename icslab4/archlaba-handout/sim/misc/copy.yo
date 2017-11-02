@@ -1,0 +1,59 @@
+                      | 
+                      | #NAME: YIHUA CHENG; ID: 1600017703
+  0x000:              | 	.pos 0
+  0x000:              | init:
+  0x000: 30f400020000 | 	irmovl STACK, %esp 
+  0x006: 30f500020000 | 	irmovl STACK, %ebp
+  0x00c: 8000030000   | 	call MAIN
+  0x011: 00           | 	halt
+                      | 
+  0x200:              | 	.pos 0x200				#SS	
+  0x200:              | STACK:						#for stack
+                      | 
+  0x200:              | .align 4					#DS
+                      | # Source block
+  0x200:              | src:
+  0x200: 0a000000     | 	.long 0x00a
+  0x204: b0000000     | 	.long 0x0b0
+  0x208: 000c0000     | 	.long 0xc00
+  0x20c:              | dest:
+  0x20c: 11010000     | 	.long 0x111
+  0x210: 22020000     | 	.long 0x222
+  0x214: 33030000     | 	.long 0x333
+                      | 
+  0x300:              | 	.pos 0x300				#CS
+  0x300:              | MAIN:
+  0x300: a05f         | 	pushl	%ebp
+  0x302: 2045         | 	rrmovl	%esp,	%ebp 
+  0x304: 30f700020000 | 	irmovl	src ,	%edi
+  0x30a: 30f60c020000 | 	irmovl	dest,	%esi
+  0x310: 30f303000000 | 	irmovl	$3	,	%ebx
+  0x316: a03f         | 	pushl	%ebx
+  0x318: 8022030000   | 	call	copy_block
+  0x31d: 2054         | 	rrmovl	%ebp,	%esp
+  0x31f: b05f         | 	popl	%ebp
+  0x321: 90           | 	ret
+                      | 
+                      | # copy_block(*src,*dst,len)
+                      | # *src in %edi; *dst in %esi; len in (%ebp-8)
+  0x322:              | copy_block:
+  0x322: a05f         | 	pushl	%ebp
+  0x324: 2045         | 	rrmovl	%esp,	%ebp	#STACK FRAME
+  0x326: 6300         | 	xorl	%eax,	%eax	#ret=0
+  0x328: 501508000000 | 	mrmovl	8(%ebp),%ecx	#mov len into ecx
+  0x32e: 6211         | 	andl	%ecx,	%ecx 
+  0x330: 735a030000   | 	je		END
+  0x335:              | LOOP:
+  0x335: 503700000000 | 	mrmovl	0(%edi),%ebx	# val = *src
+  0x33b: 30f204000000 | 	irmovl	$4,		%edx	# edx = 4
+  0x341: 6027         | 	addl	%edx,	%edi	# src ++
+  0x343: 403600000000 | 	rmmovl	%ebx,	0(%esi)	# *dst=val
+  0x349: 6026         | 	addl	%edx,	%esi	# dst++
+  0x34b: 6330         | 	xorl	%ebx,	%eax	# ret=ret^val
+  0x34d: 30f201000000 | 	irmovl	$1,		%edx	# edx=1
+  0x353: 6121         | 	subl	%edx,	%ecx	# len--
+  0x355: 7435030000   | 	jne		LOOP
+  0x35a:              | END:
+  0x35a: 2054         | 	rrmovl	%ebp,	%esp
+  0x35c: b05f         | 	popl	%ebp			#LEAVE
+  0x35e: 90           | 	ret

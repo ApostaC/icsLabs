@@ -1,0 +1,59 @@
+
+#NAME: YIHUA CHENG; ID: 1600017703
+	.pos 0
+init:
+	irmovl STACK, %esp 
+	irmovl STACK, %ebp
+	call MAIN
+	halt
+
+	.pos 0x200				#SS	
+STACK:						#for stack
+
+.align 4					#DS
+# Source block
+src:
+	.long 0x00a
+	.long 0x0b0
+	.long 0xc00
+dest:
+	.long 0x111
+	.long 0x222
+	.long 0x333
+
+	.pos 0x300				#CS
+MAIN:
+	pushl	%ebp
+	rrmovl	%esp,	%ebp 
+	irmovl	src ,	%edi
+	irmovl	dest,	%esi
+	irmovl	$3	,	%ebx
+	pushl	%ebx
+	call	copy_block
+	rrmovl	%ebp,	%esp
+	popl	%ebp
+	ret
+
+# copy_block(*src,*dst,len)
+# *src in %edi; *dst in %esi; len in (%ebp-8)
+copy_block:
+	pushl	%ebp
+	rrmovl	%esp,	%ebp	#STACK FRAME
+	xorl	%eax,	%eax	#ret=0
+	mrmovl	8(%ebp),%ecx	#mov len into ecx
+	andl	%ecx,	%ecx 
+	je		END
+LOOP:
+	mrmovl	0(%edi),%ebx	# val = *src
+	irmovl	$4,		%edx	# edx = 4
+	addl	%edx,	%edi	# src ++
+	rmmovl	%ebx,	0(%esi)	# *dst=val
+	addl	%edx,	%esi	# dst++
+	xorl	%ebx,	%eax	# ret=ret^val
+	irmovl	$1,		%edx	# edx=1
+	subl	%edx,	%ecx	# len--
+	jne		LOOP
+END:
+	rrmovl	%ebp,	%esp
+	popl	%ebp			#LEAVE
+	ret
