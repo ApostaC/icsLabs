@@ -1,0 +1,1 @@
+/usr/bin/cc     CMakeFiles/MAIN.dir/main.c.o  -o MAIN -rdynamic src/libSRC_LIB.a 

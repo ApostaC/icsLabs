@@ -1,0 +1,10 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+PROJECT(vmIter-src)
+
+SET(INCLUDES iter.h err.h task.h
+	)
+
+SET(SOURCES iter.c err.c task.c
+	)
+
+ADD_LIBRARY(SRC_LIB STATIC ${SOURCES} ${HEADERS})

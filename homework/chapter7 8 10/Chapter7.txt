@@ -1,0 +1,25 @@
+7.6
+buf		yes		external	m.o			.data
+bufp0	yes		global		swap.o		.data
+bufp1	yes		global		swap.o		COMMON
+swap	yes		global		swap.o		.text
+temp	no		-----		------		------
+incr	yes		global		swap.o		.text
+count	yes		local		swap.o		.bss
+
+7.7
+-- delete line 6, bar5.c : " x = -0.0; "
+
+7.12
+A. 0a
+B. 22
+
+7.13
+A.
+-- No libc.a and libm.a found.
+-- get no answer after typing " whereis libc.a "  and " whereis libm.a " 
+B.
+-- No difference
+C.
+"man ldd"
+-- ld-linux.so ==> /lib/ld-linux.so.2

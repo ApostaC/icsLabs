@@ -1,0 +1,5 @@
+10.6
+-- output is : fd2 = 4
+
+10.9
+-- executes : " dup2(0,3); "
