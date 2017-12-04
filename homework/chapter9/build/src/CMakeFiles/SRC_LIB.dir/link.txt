@@ -1,2 +1,0 @@
-/usr/bin/ar qc libSRC_LIB.a  CMakeFiles/SRC_LIB.dir/iter.c.o CMakeFiles/SRC_LIB.dir/err.c.o CMakeFiles/SRC_LIB.dir/task.c.o
-/usr/bin/ranlib libSRC_LIB.a

@@ -8,6 +8,7 @@
 #define GNU_SOURCE
 
 extern char error_buf[];
+static pid_t __pid;
 void set_target_pid(pid_t pid)
 {
 	__pid=pid;
@@ -18,6 +19,11 @@ pid_t curr_target_pid()
 	return __pid;
 }
 
+/* HELPER FUNCTION
+ *		void fill_name(pid,name)
+ * Get process name using pid
+ * Trigger error if no matching process found
+ */
 void fill_name(pid_t pid, char * name)
 {
 	int c, i = 0;
@@ -35,12 +41,14 @@ void fill_name(pid_t pid, char * name)
 	fclose(f);
 }
 
+/*
+ * Implementation of vm_iter following...
+ */
 void __vm_iter_unchecked(pid_t pid)
 {
-	//fprintf(stderr,"here!\n");
+	//OPEN FILE TO READ
 	long ipid=(long)pid;
 	char buf[50], read_buf[MAX_DIR_LEN+100];
-	size_t read_len;
 	FILE * fin;
 	sprintf(buf,"/proc/%ld/maps",ipid);
 	fin=fopen(buf,"r");
@@ -49,12 +57,15 @@ void __vm_iter_unchecked(pid_t pid)
 		sprintf(error_buf,"cannot open file %s",buf);
 		send_error(error_buf);
 	}
+
+	//READ THE DATA AND PROCESSING
 	unsigned long long begin,end,inode,offset;
-	size_t size;
 	char dir[MAX_DIR_LEN],dev[6],perms[5],name[MAX_NAME_LEN];
 	struct task_t task;
-	fill_name(pid,name);	
+
+	fill_name(pid,name);			//get process name
 	printf("%s(pid=%ld)\n", name, (long)(pid));	
+
 	size_t page_num=0;
 	while(!feof(fin))
 	{
@@ -63,17 +74,17 @@ void __vm_iter_unchecked(pid_t pid)
 		    break;
 		printf("page : %ld\n",page_num);
 		sscanf(read_buf,"%llx-%llx %4s %llx %5s %lld %s",&begin,&end,perms,&offset,dev,&inode,dir);
-		fill_task(pid,begin,end,inode,offset,dev,perms,dir,name,&task);
+		fill_task(pid,begin,end,inode,offset,dev,perms,dir,&task);
 		print_pages(&task);
 		page_num++;
 		printf("\n");
 	}
+	fclose(fin);
 	return;
 }
 
 void vm_iter(pid_t pid)
 {
-	//TODO:
 	long ipid=(long)pid;
 	if(ipid==0) pid=getpid();
 	if(ipid<0) pid=__pid;

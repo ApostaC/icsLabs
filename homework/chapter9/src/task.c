@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 void fill_task(pid_t pid,Ulong be,Ulong end,Ulong inode,Ulong offset,
-		const char * dev, const char * perms,const char * dir,const char * name,
+		const char * dev, const char * perms,const char * dir,
 		struct task_t * target)
 {
 	if(target==NULL)
@@ -18,13 +18,16 @@ void fill_task(pid_t pid,Ulong be,Ulong end,Ulong inode,Ulong offset,
 	memcpy(target->perms,perms,PRMINFO_LEN);
 	memcpy(target->dev,dev,DEVINFO_LEN);
 	memcpy(target->dir,dir,MAX_DIR_LEN);
-	memcpy(target->name,name,MAX_NAME_LEN);
 	return;
 }
 
+/*
+ * FUNCTION void print_header()
+ * Help function, not defined in task.h
+ */
 void print_header()
 {
-	//begin size permission 
+	//begin size permission location
 	printf("%18s%16s%16s%16s\n","begin","size","permission","location");
 }
 void print_info(struct task_t * pt)
@@ -33,7 +36,7 @@ void print_info(struct task_t * pt)
 	printf("0x%016lx%14ldKB",pt->begin,(pt->end-pt->begin)/1024);
 	printf("%16s%16s\n",pt->perms,pt->dir);
 }
-#define PAGE_BITS 12
+
 static const size_t PAGE_SIZE = (1<<(PAGE_BITS));
 void print_pages(struct task_t * pt)
 {
