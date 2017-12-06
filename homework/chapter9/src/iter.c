@@ -1,6 +1,8 @@
 #include "iter.h"
 #include "err.h"
 #include "task.h"
+#include "sigprobe.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -83,12 +85,56 @@ void __vm_iter_unchecked(pid_t pid)
 	return;
 }
 
+#include <dlfcn.h>
+
+#define TEST_SIG 1
+void __vm_iter_sig(pid_t pid)
+{
+	fprintf(stdout,"using SIGSEGV to probe the vm of process %d\n",pid);
+	init_handler();
+	struct task_t task;
+	uint64_t err;
+	// probe data and text segment
+	fprintf(stdout,"area 0\n");
+	err=probe(DATA_SEG,&task,"DATA SEGMENT");
+	if(err!=PROBE_FAILED)print_pages(&task);
+	fprintf(stdout,"area 1\n");
+	err=probe(TEXT_SEG,&task,"TEXT SEGMENT");
+	if(err!=PROBE_FAILED)print_pages(&task);
+
+	fprintf(stdout,"area 2\n");
+	//probe shared LIBRARY and Heap
+	void * needle=dlsym(dlopen("libc.so",RTLD_LAZY),"printf");
+	if(needle==NULL)
+		fprintf(stderr,"NULL Printf!\n");
+	else err=probe((uint64_t)needle,&task,"SHARED LIB AND BIG HEAP");
+	if(err!=PROBE_FAILED)print_pages(&task);
+
+	//probe small Heap
+	fprintf(stdout,"area 3\n");
+	needle=malloc(1);
+	if(needle==NULL)
+		fprintf(stderr,"malloc size 1 failed!\n");
+	else 
+	{
+		err=probe((uint64_t)needle,&task,"SMALL HEAP");
+		free(needle);
+	}
+	if(err!=PROBE_FAILED) print_pages(&task);
+
+	//probe stack
+	err=probe((uint64_t)&task,&task,"STACK");
+	if(err!=PROBE_FAILED) print_pages(&task);
+	return;
+
+}
 void vm_iter(pid_t pid)
 {
 	long ipid=(long)pid;
 	if(ipid==0) pid=getpid();
 	if(ipid<0) pid=__pid;
 	__vm_iter_unchecked(pid);
+	if(ipid==0) __vm_iter_sig(pid);	//use signal to probe itself
 	return;
 }
 

@@ -25,9 +25,10 @@
 #define PRMINFO_LEN 5
 #define Ulong uint64_t
 // A name of "area_t" maybe better
+#define PID_UNUSED -1
 struct task_t						
 {
-	pid_t pid;						//PID
+	//pid_t pid;						//PID
 	Ulong begin;					//Begin address
 	Ulong end;						//End address
 	Ulong inode;					//File node index

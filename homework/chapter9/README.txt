@@ -31,7 +31,7 @@ by: Cheng Yihua (ID:1600017703)
 
 	1. mkdir -p build
 	2. cd build
-	3. cmake -DCMAKE_INSTALL_PREFIX=`pwd` ..
+	3. cmake -DCMAKE_INSTALL_PREFIX=`pwd`/.. ..
 	4. make install
 	5. cd ..; rm -r build
 
